@@ -29,6 +29,11 @@ typedef struct {
     
     /* LED/payload state */
     bool led_state;
+    
+    /* System stats */
+    uint32_t free_heap_bytes;
+    uint32_t min_free_heap_bytes;  /* Lowest free heap ever seen */
+    uint32_t total_heap_bytes;
 } sensor_data_t;
 
 /**

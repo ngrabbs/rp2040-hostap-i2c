@@ -30,6 +30,9 @@ static const char *ssi_tags[] = {
     "refresh",  /* 6: Auto-refresh interval */
     "ina_ok",   /* 7: INA238 status */
     "bme_ok",   /* 8: BME280 status */
+    "ramfree",  /* 9: Free heap bytes */
+    "rammin",   /* 10: Minimum ever free heap */
+    "ramtot",   /* 11: Total heap size */
 };
 
 #define SSI_TAG_COUNT (sizeof(ssi_tags) / sizeof(ssi_tags[0]))
@@ -100,6 +103,18 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
             
         case 8: /* bme_ok */
             snprintf(pcInsert, iInsertLen, "%s", data->bme280_valid ? "OK" : "FAIL");
+            break;
+            
+        case 9: /* ramfree */
+            snprintf(pcInsert, iInsertLen, "%lu", (unsigned long)data->free_heap_bytes);
+            break;
+            
+        case 10: /* rammin */
+            snprintf(pcInsert, iInsertLen, "%lu", (unsigned long)data->min_free_heap_bytes);
+            break;
+            
+        case 11: /* ramtot */
+            snprintf(pcInsert, iInsertLen, "%lu", (unsigned long)data->total_heap_bytes);
             break;
             
         default:

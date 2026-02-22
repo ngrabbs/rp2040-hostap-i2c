@@ -5,6 +5,7 @@
 #include "ina238.h"
 #include "pico/stdlib.h"
 #include <string.h>
+#include <stdio.h>
 
 /* I2C timeout in microseconds */
 #define I2C_TIMEOUT_US  100000
@@ -61,7 +62,9 @@ bool ina238_init(ina238_t *dev, i2c_inst_t *i2c, uint8_t addr,
     }
     
     /* Wait for reset to complete */
-    sleep_ms(10);
+    sleep_ms(100);
+    
+
     
     /* Calculate calibration value
      * SHUNT_CAL = 819.2 * 10^6 * CURRENT_LSB * Rshunt
@@ -80,13 +83,14 @@ bool ina238_init(ina238_t *dev, i2c_inst_t *i2c, uint8_t addr,
     }
     
     /* Configure ADC for continuous measurements
-     * Mode: Continuous shunt and bus voltage
-     * VBUSCT: 1052us conversion time
-     * VSHCT: 1052us conversion time
-     * VTCT: 1052us conversion time
-     * AVG: 64 samples averaging
+     * Bits [15:12] MODE = 1011 (0xB) = Continuous shunt and bus voltage
+     * Bits [11:9]  VBUSCT = 111 = 4120us conversion time
+     * Bits [8:6]   VSHCT  = 111 = 4120us conversion time  
+     * Bits [5:3]   VTCT   = 111 = 4120us conversion time
+     * Bits [2:0]   AVG    = 000 = 1 sample
+     * = 0xBFF8
      */
-    uint16_t adc_config = 0xFB68;
+    uint16_t adc_config = 0xBFF8;
     if (!ina238_write_reg(dev, INA238_REG_ADC_CONFIG, adc_config)) {
         return false;
     }
@@ -157,8 +161,12 @@ bool ina238_read(ina238_t *dev, ina238_data_t *data) {
         return false;
     }
     
-    /* Convert bus voltage: LSB = 3.125mV */
-    data->bus_voltage_v = (float)(int16_t)vbus_raw * 3.125f / 1000.0f;
+    /* Convert bus voltage: LSB = 3.125mV 
+     * Register is 16-bit value, unsigned for positive voltages
+     */
+    data->bus_voltage_v = (float)vbus_raw * 3.125f / 1000.0f;
+    
+
     
     /* Convert current using calibrated LSB, result in mA */
     data->current_ma = (float)(int16_t)current_raw * dev->current_lsb * 1000.0f;

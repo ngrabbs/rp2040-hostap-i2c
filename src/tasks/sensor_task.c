@@ -118,6 +118,9 @@ void sensor_task(void *params) {
     g_sensor_data.poll_interval_ms = DEFAULT_POLL_INTERVAL_MS;
     g_sensor_data.led_state = false;
     
+    /* Get total heap size (this is the configTOTAL_HEAP_SIZE from FreeRTOSConfig.h) */
+    g_sensor_data.total_heap_bytes = configTOTAL_HEAP_SIZE;
+    
     last_wake_time = xTaskGetTickCount();
     
     while (1) {
@@ -163,6 +166,13 @@ void sensor_task(void *params) {
                     xSemaphoreGive(g_sensor_mutex);
                 }
             }
+        }
+        
+        /* Update heap statistics */
+        if (xSemaphoreTake(g_sensor_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            g_sensor_data.free_heap_bytes = xPortGetFreeHeapSize();
+            g_sensor_data.min_free_heap_bytes = xPortGetMinimumEverFreeHeapSize();
+            xSemaphoreGive(g_sensor_mutex);
         }
         
         /* Wait for next poll interval */

@@ -1,9 +1,9 @@
 /*
  * WiFi Task Implementation - Access Point mode
  * 
- * Sets up the Pico 2W as a WiFi Access Point.
- * The CYW43 driver handles DHCP internally when CYW43_NETUTILS is enabled,
- * otherwise we need to handle IP assignment ourselves.
+ * Sets up the Pico 2W as a WiFi Access Point with DHCP server.
+ * Uses standalone DHCP server from pico-examples since CYW43_NETUTILS
+ * is disabled by default in the SDK.
  */
 
 #include "wifi_task.h"
@@ -12,9 +12,13 @@
 #include "pico/cyw43_arch.h"
 #include "lwip/ip4_addr.h"
 #include "lwip/netif.h"
+#include "dhcpserver.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdio.h>
+
+/* DHCP server instance */
+static dhcp_server_t g_dhcp_server;
 
 static TaskHandle_t g_wifi_task_handle = NULL;
 static volatile bool g_wifi_ready = false;
@@ -61,12 +65,17 @@ void wifi_task(void *params) {
     printf("[WiFi] AP IP address: %d.%d.%d.%d\n",
            AP_IP_ADDR_0, AP_IP_ADDR_1, AP_IP_ADDR_2, AP_IP_ADDR_3);
     
-    /* Note: DHCP server is handled internally by the CYW43 driver
-     * when CYW43_NETUTILS is enabled (which is the default for AP mode
-     * in the pico_cyw43_arch library). Clients connecting will get
-     * IPs starting from 192.168.4.2
+    /* Initialize DHCP server
+     * This provides IP addresses to clients connecting to the AP.
+     * Clients will get IPs starting from 192.168.4.16 (DHCPS_BASE_IP)
+     * up to 192.168.4.23 (DHCPS_BASE_IP + DHCPS_MAX_IP - 1)
      */
-    printf("[WiFi] DHCP server active (managed by CYW43 driver)\n");
+    ip_addr_t dhcp_ip, dhcp_nm;
+    IP4_ADDR(ip_2_ip4(&dhcp_ip), AP_IP_ADDR_0, AP_IP_ADDR_1, AP_IP_ADDR_2, AP_IP_ADDR_3);
+    IP4_ADDR(ip_2_ip4(&dhcp_nm), AP_NETMASK_0, AP_NETMASK_1, AP_NETMASK_2, AP_NETMASK_3);
+    dhcp_server_init(&g_dhcp_server, &dhcp_ip, &dhcp_nm);
+    
+    printf("[WiFi] DHCP server started (clients will get 192.168.4.16-23)\n");
     
     /* Mark WiFi as ready */
     g_wifi_ready = true;

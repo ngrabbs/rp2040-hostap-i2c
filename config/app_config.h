@@ -45,9 +45,12 @@
 /*-----------------------------------------------------------
  * INA238 Configuration
  *----------------------------------------------------------*/
-/* Shunt resistor value in milliohms */
-#define INA238_SHUNT_MOHMS      100     /* 100 mOhm shunt resistor */
-#define INA238_MAX_CURRENT_A    3.2     /* Maximum expected current in Amps */
+/* Shunt resistor value in milliohms
+ * R015 marking = 15 mOhm (0.015 ohm)
+ * Max measurable current with 15mOhm shunt: ~5.5A (at 81.92mV max shunt voltage)
+ */
+#define INA238_SHUNT_MOHMS      15      /* 15 mOhm shunt resistor (R015) */
+#define INA238_MAX_CURRENT_A    5.0     /* Maximum expected current in Amps */
 
 /*-----------------------------------------------------------
  * Sensor Polling Configuration

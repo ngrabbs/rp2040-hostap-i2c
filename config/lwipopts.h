@@ -8,7 +8,7 @@
 /* Platform specific locking */
 #define NO_SYS                          0
 #define LWIP_SOCKET                     0
-#define LWIP_NETCONN                    0
+#define LWIP_NETCONN                    1
 
 /* Memory options */
 #define MEM_LIBC_MALLOC                 0
@@ -95,9 +95,10 @@
 #define LWIP_HTTPD_MAX_TAG_INSERT_LEN   192
 #define LWIP_HTTPD_SUPPORT_POST         0
 #define LWIP_HTTPD_DYNAMIC_HEADERS      1
-#define LWIP_HTTPD_DYNAMIC_FILE_READ    0
+#define LWIP_HTTPD_DYNAMIC_FILE_READ    1
 #define LWIP_HTTPD_CUSTOM_FILES         1
 #define HTTPD_PRECALCULATED_CHECKSUM    0
+#define HTTPD_FSDATA_FILE               "fsdata.c"
 
 /* Thread options for FreeRTOS integration */
 #define TCPIP_THREAD_NAME               "tcpip"

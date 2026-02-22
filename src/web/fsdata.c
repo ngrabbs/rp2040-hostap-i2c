@@ -14,9 +14,10 @@
 /* File: /index.shtml - Main web page with SSI tags */
 /*---------------------------------------------------------------------------*/
 
-static const unsigned char file_name_index_shtml[] = "/index.shtml";
+static const char file_name_index_shtml[] = "/index.shtml";
 
-static const unsigned char file_data_index_shtml[] =
+/* HTTP headers are generated dynamically by lwIP when LWIP_HTTPD_DYNAMIC_HEADERS=1 */
+static const char file_data_index_shtml[] =
 "<!DOCTYPE html>\r\n"
 "<html>\r\n"
 "<head>\r\n"
@@ -64,8 +65,8 @@ static const unsigned char file_data_index_shtml[] =
 "<div class=\"card\">\r\n"
 "<h2>Environment (BME280)</h2>\r\n"
 "<table>\r\n"
-"<tr><td>Temperature:</td><td><!--#temp--> &deg;C</td></tr>\r\n"
-"<tr><td>Humidity:</td><td><!--#hum--> %%</td></tr>\r\n"
+"<tr><td>Temperature:</td><td><!--#temp--> C</td></tr>\r\n"
+"<tr><td>Humidity:</td><td><!--#hum--> %</td></tr>\r\n"
 "<tr><td>Sensor Status:</td><td class=\"<!--#bme_ok-->\"><!--#bme_ok--></td></tr>\r\n"
 "</table>\r\n"
 "</div>\r\n"
@@ -86,6 +87,15 @@ static const unsigned char file_data_index_shtml[] =
 "</form>\r\n"
 "</div>\r\n"
 "\r\n"
+"<div class=\"card\">\r\n"
+"<h2>System Stats</h2>\r\n"
+"<table>\r\n"
+"<tr><td>Free Heap:</td><td><!--#ramfree--> bytes</td></tr>\r\n"
+"<tr><td>Min Free Heap:</td><td><!--#rammin--> bytes</td></tr>\r\n"
+"<tr><td>Total Heap:</td><td><!--#ramtot--> bytes</td></tr>\r\n"
+"</table>\r\n"
+"</div>\r\n"
+"\r\n"
 "<div class=\"footer\">\r\n"
 "<p>Auto-refresh: <!--#refresh-->s | Poll: <!--#poll-->ms</p>\r\n"
 "<p>Pico 2W HostAP I2C Sensor Monitor</p>\r\n"
@@ -98,9 +108,9 @@ static const unsigned char file_data_index_shtml[] =
 /* File: /404.html - Not found page */
 /*---------------------------------------------------------------------------*/
 
-static const unsigned char file_name_404_html[] = "/404.html";
+static const char file_name_404_html[] = "/404.html";
 
-static const unsigned char file_data_404_html[] =
+static const char file_data_404_html[] =
 "<!DOCTYPE html>\r\n"
 "<html>\r\n"
 "<head>\r\n"
@@ -115,48 +125,62 @@ static const unsigned char file_data_404_html[] =
 "</html>\r\n";
 
 /*---------------------------------------------------------------------------*/
-/* File system structure - use the type from lwip/apps/fs.h */
+/* File system structure */
 /*---------------------------------------------------------------------------*/
 
+/* fsdata_file structure from lwIP:
+ * struct fsdata_file {
+ *   const struct fsdata_file *next;
+ *   const unsigned char *name;
+ *   const unsigned char *data;
+ *   int len;
+ *   u8_t flags;
+ * };
+ */
+
+/* Note: FS_FILE_FLAGS_HEADER_INCLUDED=0 means lwIP generates headers dynamically */
 static const struct fsdata_file file_404_html = {
-    NULL,
-    file_name_404_html,
-    file_data_404_html,
-    sizeof(file_data_404_html) - 1,
-    FS_FILE_FLAGS_HEADER_INCLUDED,
+    NULL,                                           /* next */
+    (const unsigned char *)file_name_404_html,      /* name */
+    (const unsigned char *)file_data_404_html,      /* data */
+    sizeof(file_data_404_html) - 1,                 /* len (exclude null terminator) */
+    0                                               /* flags - no headers, not SSI */
 };
 
 static const struct fsdata_file file_index_shtml = {
-    &file_404_html,
-    file_name_index_shtml,
-    file_data_index_shtml,
-    sizeof(file_data_index_shtml) - 1,
-    FS_FILE_FLAGS_HEADER_INCLUDED | FS_FILE_FLAGS_SSI,
+    &file_404_html,                                 /* next */
+    (const unsigned char *)file_name_index_shtml,   /* name */
+    (const unsigned char *)file_data_index_shtml,   /* data */
+    sizeof(file_data_index_shtml) - 1,              /* len (exclude null terminator) */
+    FS_FILE_FLAGS_SSI                               /* flags - SSI processing enabled */
 };
 
+/* Root of the file list */
 #define FS_ROOT (&file_index_shtml)
 #define FS_NUMFILES 2
 
 /*---------------------------------------------------------------------------*/
-/* File system access functions */
-/*---------------------------------------------------------------------------*/
+/* Custom file system access functions 
+ * These are called by lwIP httpd when LWIP_HTTPD_CUSTOM_FILES=1
+ *---------------------------------------------------------------------------*/
 
 int fs_open_custom(struct fs_file *file, const char *name) {
     const struct fsdata_file *f;
     
-    /* Handle root URL */
-    if ((name[0] == '/') && (name[1] == '\0')) {
+    /* Handle root URL - redirect to index.shtml */
+    if (name[0] == '/' && name[1] == '\0') {
         name = "/index.shtml";
     }
     
-    /* Search for file */
+    /* Search for file in our embedded filesystem */
     for (f = FS_ROOT; f != NULL; f = f->next) {
-        if (!strcmp(name, (const char *)f->name)) {
+        if (strcmp(name, (const char *)f->name) == 0) {
+            /* Found the file - populate fs_file structure */
             file->data = (const char *)f->data;
             file->len = f->len;
-            file->index = f->len;
+            file->index = f->len;  /* All data available immediately */
             file->flags = f->flags;
-            return 1;  /* File found */
+            return 1;  /* Success */
         }
     }
     
@@ -164,12 +188,12 @@ int fs_open_custom(struct fs_file *file, const char *name) {
 }
 
 void fs_close_custom(struct fs_file *file) {
-    /* Nothing to clean up for const data */
+    /* Nothing to clean up for const data in flash */
     (void)file;
 }
 
 int fs_read_custom(struct fs_file *file, char *buffer, int count) {
-    /* All data already in memory, nothing to read */
+    /* All data is in memory, nothing additional to read */
     (void)file;
     (void)buffer;
     (void)count;

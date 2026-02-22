@@ -38,6 +38,8 @@ add_executable(${ProjectName}
     # Drivers
     src/drivers/ina238.c
     src/drivers/bme280.c
+    # DHCP Server (from pico-examples)
+    src/dhcpserver/dhcpserver.c
     # Tasks
     src/tasks/sensor_task.c
     src/tasks/wifi_task.c
@@ -53,6 +55,7 @@ pico_enable_stdio_uart(${ProjectName} 0)
 target_include_directories(${ProjectName}
     PRIVATE src
     PRIVATE src/drivers
+    PRIVATE src/dhcpserver
     PRIVATE src/tasks
     PRIVATE src/web
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/config
