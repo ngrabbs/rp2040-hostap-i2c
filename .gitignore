@@ -1,0 +1,142 @@
+# =============================================================================
+# Build Outputs
+# =============================================================================
+
+# Build directory (CMake generates everything here)
+build/
+cmake-build-*/
+
+# Compiled firmware files (generated during build)
+*.uf2
+*.elf
+*.bin
+*.hex
+*.dis
+*.map
+
+# Object files
+*.o
+*.obj
+*.a
+*.lib
+
+# =============================================================================
+# CMake
+# =============================================================================
+
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!pico_sdk_import.cmake
+
+# =============================================================================
+# IDEs and Editors
+# =============================================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# CLion / JetBrains
+.idea/
+*.iml
+
+# Eclipse
+.project
+.cproject
+.settings/
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+.*.swp
+
+# Emacs
+*~
+\#*\#
+.#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =============================================================================
+# Debug and Logs
+# =============================================================================
+
+*.log
+*.txt.log
+debug/
+logs/
+
+# GDB
+.gdb_history
+
+# OpenOCD
+*.cfg.bak
+
+# =============================================================================
+# Temporary Files
+# =============================================================================
+
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+
+# =============================================================================
+# Python (if using any build scripts)
+# =============================================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+venv/
+env/
+
+# =============================================================================
+# Archives (don't commit compressed files)
+# =============================================================================
+
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# =============================================================================
+# Documentation Build Outputs
+# =============================================================================
+
+docs/_build/
+doxygen/html/
+doxygen/latex/
+
+# =============================================================================
+# Project Specific
+# =============================================================================
+
+# Don't ignore the lib directory itself, but it will be populated by submodule
+# lib/FreeRTOS-Kernel/ is managed as a git submodule
+
+# Local configuration overrides (if someone creates them)
+config/local_*.h
+*.local
+
+# Test outputs
+test_results/
+coverage/
