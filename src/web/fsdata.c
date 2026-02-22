@@ -10,19 +10,6 @@
 #include "lwip/apps/fs.h"
 #include <string.h>
 
-/* Forward declaration for file linkage */
-struct fsdata_file {
-    const struct fsdata_file *next;
-    const unsigned char *name;
-    const unsigned char *data;
-    int len;
-    u8_t flags;
-#if HTTPD_PRECALCULATED_CHECKSUM
-    u16_t chksum_count;
-    const struct fsdata_chksum *chksum;
-#endif
-};
-
 /*---------------------------------------------------------------------------*/
 /* File: /index.shtml - Main web page with SSI tags */
 /*---------------------------------------------------------------------------*/
@@ -128,32 +115,26 @@ static const unsigned char file_data_404_html[] =
 "</html>\r\n";
 
 /*---------------------------------------------------------------------------*/
-/* File system structure */
+/* File system structure - use the type from lwip/apps/fs.h */
 /*---------------------------------------------------------------------------*/
 
-static const struct fsdata_file file_404_html[] = {{
+static const struct fsdata_file file_404_html = {
     NULL,
     file_name_404_html,
     file_data_404_html,
     sizeof(file_data_404_html) - 1,
     FS_FILE_FLAGS_HEADER_INCLUDED,
-#if HTTPD_PRECALCULATED_CHECKSUM
-    0, NULL
-#endif
-}};
+};
 
-static const struct fsdata_file file_index_shtml[] = {{
-    file_404_html,
+static const struct fsdata_file file_index_shtml = {
+    &file_404_html,
     file_name_index_shtml,
     file_data_index_shtml,
     sizeof(file_data_index_shtml) - 1,
     FS_FILE_FLAGS_HEADER_INCLUDED | FS_FILE_FLAGS_SSI,
-#if HTTPD_PRECALCULATED_CHECKSUM
-    0, NULL
-#endif
-}};
+};
 
-#define FS_ROOT file_index_shtml
+#define FS_ROOT (&file_index_shtml)
 #define FS_NUMFILES 2
 
 /*---------------------------------------------------------------------------*/
@@ -174,7 +155,6 @@ int fs_open_custom(struct fs_file *file, const char *name) {
             file->data = (const char *)f->data;
             file->len = f->len;
             file->index = f->len;
-            file->pextension = NULL;
             file->flags = f->flags;
             return 1;  /* File found */
         }

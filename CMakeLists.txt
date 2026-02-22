@@ -59,7 +59,6 @@ target_include_directories(${ProjectName}
 )
 
 target_compile_definitions(${ProjectName} PRIVATE
-    PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1
     CYW43_HOST_NAME="pico2w"
 )
 

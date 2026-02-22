@@ -1,10 +1,37 @@
 /*
- * FreeRTOS Configuration for RP2040 HostAP I2C Project
- * Based on FreeRTOS V202111.00
+ * FreeRTOS Configuration for RP2350 (Pico 2W) HostAP I2C Project
+ * Based on FreeRTOS V11.x for ARM Cortex-M33
  */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
+
+/*-----------------------------------------------------------
+ * RP2350 (Cortex-M33) Specific Configuration
+ * These MUST be defined for the RP2350 ARM port
+ *----------------------------------------------------------*/
+
+/* Enable/disable FPU support - RP2350 has an FPU */
+#define configENABLE_FPU                        1
+
+/* Enable/disable MPU support - disable for simplicity */
+#define configENABLE_MPU                        0
+
+/* Enable/disable TrustZone - RP2350 NTZ (Non-TrustZone) port */
+#define configENABLE_TRUSTZONE                  0
+
+/* Required for newer FreeRTOS versions */
+#define configRUN_FREERTOS_SECURE_ONLY          1
+
+/* ARM Cortex-M33 Interrupt Priority Configuration
+ * RP2350 uses 4 priority bits (values 0-15, 0 is highest priority)
+ * FreeRTOS uses the upper bits, so we shift by 4
+ */
+#define configPRIO_BITS                         4
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         0xf
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    5
+#define configKERNEL_INTERRUPT_PRIORITY         (configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY    (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS))
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -15,6 +42,7 @@
 #define configUSE_TICKLESS_IDLE                 0
 #define configUSE_IDLE_HOOK                     0
 #define configUSE_TICK_HOOK                     0
+#define configUSE_PASSIVE_IDLE_HOOK             0
 #define configTICK_RATE_HZ                      ((TickType_t)1000)
 #define configMAX_PRIORITIES                    8
 #define configMINIMAL_STACK_SIZE                ((configSTACK_DEPTH_TYPE)256)
